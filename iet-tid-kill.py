@@ -14,7 +14,9 @@ from pprint import pprint
 from os import system
 
 def find_with_tail(prefix):
-    return lambda s: re.compile(r"%(pref)s:(\d+)(.+?)(?:(?=%(pref)s:)|$)" % {"pref": prefix}, re.I | re.S).findall(s)
+    regexp = re.compile(r"%(pref)s:(\d+)(.+?)(?:(?=%(pref)s:)|$)" %
+                        {"pref": prefix}, re.I | re.S)
+    return lambda s: regexp.findall(s)
 
 def parse(terms, s):
     f = dict if len(terms) > 1 else lambda x: x
@@ -27,23 +29,27 @@ def get_session():
     return parse(["tid", "sid", "cid"], file(SESSION).read())
 
 def del_cid(tid, sid, cid):
-    return system("ietadm --tid %s --sid %s --cid %s --op delete" % (tid, sid, cid))
+    return system("ietadm --tid %s --sid %s --cid %s --op delete" %
+                  (tid, sid, cid))
 def del_lun(tid, lun):
     return system("ietadm --tid %s --lun %s --op delete" % (tid, lun))
 def del_tid(tid):
     return system("ietadm --tid %s --op delete" % (tid))
 
-tid = int(sys.argv[1])
+if len(sys.argv) == 2:
+    tid = int(sys.argv[1])
 
-session = get_session()
-while True:
-    if not session[tid]: break # if no sids in tid
-    for sid in session[tid]:
-        if not session[tid][sid]: break #if no cids in sid
-        for cid in session[tid][sid]:
-            del_cid(tid, sid, cid)
     session = get_session()
-volume = get_volume()
-for lun in volume[tid]:
-    del_lun(tid, lun)
-del_tid(tid)
+    while True:
+        if not session[tid]: break # if no sids in tid
+        for sid in session[tid]:
+            if not session[tid][sid]: break #if no cids in sid
+            for cid in session[tid][sid]:
+                del_cid(tid, sid, cid)
+        session = get_session()
+    volume = get_volume()
+    for lun in volume[tid]:
+        del_lun(tid, lun)
+    del_tid(tid)
+else:
+    print "usage: %s NUMBER_OF_TID" % (sys.argv[0])
