@@ -1,1 +1,10 @@
-automatic TID (target) removal from IET
+iet-tid-kill
+
+(C) Selectel, 2011
+
+Application allow to kill target by it TID even it contain active sessions
+
+Usage iet-tid-kill N
+, where N - tid number from /proc/net/iet/volume
+
+
